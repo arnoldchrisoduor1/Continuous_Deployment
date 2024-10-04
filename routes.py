@@ -19,7 +19,7 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     
-    return jsonify({ "msg": "User registered successfully" }), 201
+    return jsonify({ "msg": "User registered successfully." }), 201
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -33,7 +33,7 @@ def login():
         access_token = create_access_token(identity=username)
         return jsonify(access_token=access_token), 200
     
-    return jsonify({ "mesg": "Invalid username or password" }), 401
+    return jsonify({ "msg": "Invalid username or password." }), 401
 
 
 @auth_bp.route('/change-password', methods=['POST'])
@@ -50,7 +50,7 @@ def change_password():
     
     return jsonify({ "msg": "User not found" })
 
-@auth_bp.route('/delete-account', methods=['POST'])
+@auth_bp.route('/delete-account', methods=['DELETE'])
 @jwt_required()
 def delete_account():
     current_user = User.query.filter_by(username=get_jwt_identity()).first()
@@ -58,6 +58,6 @@ def delete_account():
     if current_user:
         db.session.delete(current_user)
         db.session.commit()
-        return jsonify({ "msg": "Account deleted successfully" }), 200
+        return jsonify({ "msg": "Account deleted successfully." }), 200
     
-    return jsonify({ "msg": "User not found" })
+    return jsonify({ "msg": "User not found" }), 404

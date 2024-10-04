@@ -1,33 +1,84 @@
-import requests
 import pytest
-import app
+from app import app, db
+from models import User
+from flask  import json
+import routes
 
 BASE = "http://127.0.0.1:5000/"
 
-def test_get_base():
-    name = "TestName"       # Example of the name parameter
-    test_value = 42         # Example of the integer parameter
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://:memory:'
     
-    # A construct of the full URL with the parameters.
-    url = f"{BASE}{name}/{test_value}"
+    with app.test_client() as client:
+        with app.app_context():
+            # creating all the tables in the test database
+            db.create_all()
+        yield client
+        with app.app_context():
+            db.drop_all()
+            
+def test_register(client):
+    # simulating user registrations
+    response = client.post('/register', json={
+        'username': 'testuser',
+        'password': 'testpassword'
+    })
+    assert response.status_code == 201
+    assert response.json['msg'] == 'User registered successfully.'
     
-    try:
-        # Adding a timeout of 5 seconds to the request
-        response = requests.get(url, timeout=5)
-    except:
-        pytest.fail("Request timed out")
-        
-    # Checking the correct status code.
+def test_login(client):
+    # Registering user first before login.
+    client.post('/register', json={
+        'username': 'testuser',
+        'password': 'password'
+    })
+    
+    # Now we can login with the correct credentials.
+    response = client.post('/login', json={
+        'username': 'testuser',
+        'password':'password'
+    })
     assert response.status_code == 200
-    assert response.headers['Content-Type'] == 'application/json'
+    assert 'access_token' in response.json
     
-    # Asserting the returned values.
-    json_data = response.json()
+def test_change_password(client):
+    # Register and login to get access token
+    client.post('/register', json={
+        'username': 'testuser',
+        'password': 'testpassword'
+    })
+    login_response = client.post('/login', json={
+        'username':'testuser',
+        'password':'testpassword'
+    })
+    access_token = login_response.json['access_token']
     
-    # Checking for the correct keys.
-    assert "name" in json_data
-    assert "test" in json_data
+    # change password using access token
+    response = client.post('/change-password', json={
+        'new_password': 'newtestpassword'
+    }, headers={
+        'Authorization':f'Bearer {access_token}'
+    })
+    assert response.status_code == 200
+    assert response.json['msg'] == 'Password updated successfully.'
     
-    # Checking for the correct data returned
-    assert json_data['name'] == name
-    assert json_data['test'] == test_value
+def test_delete_account(client):
+    # Register and login user to get user token.
+    client.post('/register', json={
+        'username': 'testuser',
+        'password': 'testpassword'
+    })
+    login_response = client.post('/login', json={
+        'username':'testuser',
+        'password': 'testpassword'
+    })
+    access_token = login_response.json['access_token']
+    
+    # Delete the account using the access token
+    response = client.delete('/delete-account', headers={
+        'Authorization': f'Bearer {access_token}'
+    })
+    assert response.status_code == 200
+    assert response.json['msg'] == 'Account deleted successfully.'
