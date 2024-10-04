@@ -35,7 +35,6 @@ def login():
     
     return jsonify({ "msg": "Invalid username or password." }), 401
 
-
 @auth_bp.route('/change-password', methods=['POST'])
 @jwt_required()
 def change_password():

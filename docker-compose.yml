@@ -1,0 +1,13 @@
+services:
+  flask-app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: testing
+
+  tests:
+    build: .
+    depends_on:
+      - flask-app
+    command: pytest test_api.py test_unit.py  # Run your tests

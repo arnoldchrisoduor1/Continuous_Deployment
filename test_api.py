@@ -1,8 +1,5 @@
 import pytest
 from app import app, db
-from models import User
-from flask  import json
-import routes
 
 BASE = "http://127.0.0.1:5000/"
 

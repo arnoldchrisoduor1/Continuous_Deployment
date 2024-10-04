@@ -3,7 +3,7 @@ install:
 			pip install -r requirements.txt
 
 lint:
-		pylint --disable=R,C main.py test_api.py
+		pylint --disable=R,C app.py test_api.py test_unit.py
 
 test:
-	python -m pytest -vv --cov=routes test_api.py
+	python -m pytest -vv --cov=routes test_unit.py test_api.py
