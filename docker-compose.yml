@@ -1,6 +1,7 @@
 services:
   flask-app:
     build: .
+    image: ${DOCKER_USERNAME}/flask-app:latest
     ports:
       - "5000:5000"
     environment:
@@ -8,6 +9,7 @@ services:
 
   tests:
     build: .
+    image: ${DOCKER_USERNAME}/flask-app-tests:latest
     depends_on:
       - flask-app
     command: pytest test_api.py test_unit.py  # Run your tests
